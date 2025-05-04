@@ -32,14 +32,17 @@ fi
 echo "Creating Jenkins data directory..."
 mkdir -p jenkins_home
 
-# Ask for custom port
-read -p "Port 8080 is already in use. Enter an alternative port for Jenkins (e.g., 8081, 8082): " JENKINS_PORT
-JENKINS_PORT=${JENKINS_PORT:-8081}
+# Ask for custom web port
+read -p "Enter port for Jenkins web interface (default: 8080): " JENKINS_WEB_PORT
+JENKINS_WEB_PORT=${JENKINS_WEB_PORT:-8080}
+
+# Ask for custom agent port
+read -p "Enter port for Jenkins agent connections (default: 50000): " JENKINS_AGENT_PORT
+JENKINS_AGENT_PORT=${JENKINS_AGENT_PORT:-50000}
 
 # Create docker-compose file for Jenkins
 echo "Creating docker-compose file for Jenkins..."
 cat > jenkins-docker-compose.yml << EOL
-version: '3'
 services:
   jenkins:
     image: jenkins/jenkins:lts
@@ -48,8 +51,8 @@ services:
     privileged: true
     user: root
     ports:
-      - ${JENKINS_PORT}:8080
-      - 50000:50000
+      - ${JENKINS_WEB_PORT}:8080
+      - ${JENKINS_AGENT_PORT}:50000
     volumes:
       - ./jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
@@ -117,7 +120,7 @@ echo "Waiting for Jenkins to start..."
 sleep 10
 
 echo "===== Jenkins Setup Complete ====="
-echo "Jenkins is now running at http://localhost:${JENKINS_PORT}"
+echo "Jenkins is now running at http://localhost:${JENKINS_WEB_PORT}"
 echo "To get the initial admin password, run:"
 echo "docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword"
 echo ""
